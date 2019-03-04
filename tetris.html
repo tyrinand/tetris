@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My game</title>
+    <meta charset="utf-8" />
+    <style>
+        *{ box-sizing: border-box;}
+        html,body{
+          margin: 0;
+          padding: 0;
+        }
+        body {background: #ddd; padding: 20px;}
+        canvas {
+                background: black;
+                margin: 0 auto;
+                display: block;
+              }
+    </style>
+  </head>
+  <body>
+    <canvas id="mc" width="1200" height="600"></canvas>
+    <script>
+          window.onload = function() {
+            bild_block(); // задание блоков
+            document.addEventListener('keydown', changeDirection);
+            document.addEventListener("mousemove", mouseMoveHandler, false);
+            setInterval(loop, 1000/60); // 60 FPS // через 60 секунд
+          }
+          var
+              canv 				= document.getElementById('mc'), // canvas
+              ctx					= canv.getContext('2d'), // 2d context
+              blocks       = [], // все блоки
+              score				= 0,
+              slot = {
+                h:30,
+                w:400,
+                x:~~(canv.width) / 3,
+                y: canv.height-33,
+                step:30
+              },
+              block = { // first block
+                x: 3,
+                y: 3,
+                h: 30,
+                w: 140,
+                color: 'red',
+                status: 1
+              },
+              bool = { // bool
+                x: 10,
+                y: ~~(canv.height)/2,
+                h:30,
+                w:30,
+                color: 'red',
+                speed_x: 0,
+                speed_y: 0
+              };
+          function bild_block()
+          {
+            for(var i = 0; i < 8; i++ )
+            {
+              blocks.push({x: block.x, y: block.y, w: block.w, h: block.h, color: block.color, status:block.status});
+              block.x = block.x + block.w + 10;
+              block.color = rc();
+            }
+            block.y = block.y+block.h +50;
+            block.x = 60;
+            block.w = 260;
+            block.color = rc();
+            for(var i = 0; i < 4; i++ )
+            {
+              blocks.push({x: block.x, y: block.y, w: block.w, h: block.h, color: block.color, status:block.status});
+              block.x = block.x + block.w + 10;
+              block.color = rc();
+            }
+            block.y = block.y+block.h +50;
+            block.x = 60;
+            block.w = 530;
+            block.color = rc();
+            for(var i = 0; i < 2; i++ )
+            {
+              blocks.push({x: block.x, y: block.y, w: block.w, h: block.h, color: block.color, status:block.status});
+              block.x = block.x + block.w + 10;
+              block.color = rc();
+            }
+          }
+          function rc()
+          {
+            return '#' + ((~~(Math.random() * 255)).toString(16)) + ((~~(Math.random() * 255)).toString(16)) + ((~~(Math.random() * 255)).toString(16));
+          }
+          function loop()
+          {
+            ctx.fillStyle = 'black'; // заливка черным
+            ctx.fillRect(0, 0, canv.width, canv.height);
+
+            ctx.fillStyle = 'lime'; // отрисовка слота
+              ctx.fillRect(slot.x,slot.y,slot.w,slot.h);
+
+            ctx.fillStyle = bool.color;
+            ctx.fillRect(bool.x,bool.y,bool.w,bool.h);
+
+            for(var i = 0; i < blocks.length; i++ )
+              {
+                if(blocks[i].status)
+                {
+                  ctx.fillStyle = blocks[i].color;
+                  ctx.fillRect(blocks[i].x, blocks[i].y, blocks[i].w, blocks[i].h);
+                }
+              }
+            drawScore();
+            delete_block(); // проверка столкновений
+            check_bool();
+          }
+          function check_bool()
+          {
+            bool.x+= bool.speed_x;
+            bool.y+=bool.speed_y;
+            //right
+            if(bool.x > (canv.width-bool.w) ) bool.speed_x = - bool.speed_x;
+            //top
+            if(bool.y < 0) bool.speed_y = -bool.speed_y;
+            // left
+            if(bool.x < 0) bool.speed_x = -bool.speed_x;
+            // bootom
+            if(bool.y > (canv.height-bool.h-slot.h))
+            {
+              if( (bool.x>slot.x) && (bool.x<(slot.x + slot.w)) )
+                bool.speed_y = -bool.speed_y;
+              else
+                {
+                  bool.x = 10;
+                  bool.y = (canv.height)/2,
+                  alert('Фиаско братан');
+                  document.location.reload();
+                }
+            }
+          }
+          function delete_block()
+          {
+            for(var i = 0; i < blocks.length; i++)
+            {
+              if(blocks[i].status == 1 )
+              {
+                if(bool.x > blocks[i].x && bool.x < blocks[i].x+blocks[i].w && bool.y > blocks[i].y && bool.y < blocks[i].y +blocks[i].h )
+                {
+                    bool.speed_y = -bool.speed_y ;
+                    blocks[i].status = 0;
+                    score++;
+
+                    if(score == blocks.length) {
+                        alert("YOU WIN!");
+                        document.location.reload();
+                    }
+                }
+              }
+            }
+          }
+          function drawScore() {
+            ctx.font = "16px Arial";
+            ctx.fillStyle = "#0095DD";
+            ctx.fillText("Score: "+score, 8, 20);
+          }
+        function  mouseMoveHandler(e){
+          var relativeX = e.clientX - canv.offsetLeft;
+              if(relativeX > 0 && relativeX < canv.width) {
+                  slot.x = relativeX - slot.x/2;
+              }
+          }
+          function changeDirection(evt)
+          {
+
+            // старт
+
+            if( evt.keyCode == 13 ) // старт
+              {
+                bool.speed_x = 2;
+                bool.speed_y = 2;
+              }
+
+            if( evt.keyCode == 37 ) // left arrow
+              {
+                slot.x-=slot.step;
+              }
+
+            if( evt.keyCode == 39 ) // right arrow
+              {
+                slot.x+=slot.step;
+              }
+          }
+    </script>
+  </body>
+</html>
